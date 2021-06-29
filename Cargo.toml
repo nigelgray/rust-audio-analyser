@@ -13,6 +13,14 @@ num = "0.2.0"
 plotlib = "0.4.0"
 csv = "1.1.2"
 
+[dependencies.pyo3]
+version = "0.13.2"
+features = ["extension-module"]
+
+[lib]
+name = "rust_audio_tester"
+crate-type = ["cdylib"]
+
 [features]
 default = ["default_card"]
 default_card = []
