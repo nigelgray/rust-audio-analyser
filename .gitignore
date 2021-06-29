@@ -14,3 +14,4 @@ Cargo.lock
 *.svg
 *.csv
 *.wav
+python_src/rust_audio_tester.pyd
