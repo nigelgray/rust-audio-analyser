@@ -1,0 +1,70 @@
+#:kivy 1.11.1
+
+<Tabbed>:
+    do_default_tab: False
+    tab_width: self.width / 9
+
+    TabbedPanelItem:
+        text: 'Audio Tests'
+        GridLayout:
+            cols: 3
+            padding: 50,25,50,50
+            spacing: 50,25
+            canvas.before:
+                Color:
+                    rgb: .6, .6, .6
+                Rectangle:
+                    size: self.size
+                    source: 'background.png'
+
+            Label:
+                text: ''
+            TextInput:
+                id: input
+                hint_text:'Enter frequency'
+                on_text: root.processFrequencyTest(args[1])
+            Button:
+                text: 'Run Test'
+                on_release: root.doWork()
+
+            Label:
+                text: ''
+            Label:
+                text: ''
+            Label:
+                text: ''
+
+            Label:
+                text: 'RMS Gain'
+            Label:
+                text: root.rmsGain
+            Label:
+                text: ''
+
+            Label:
+                text: 'Generated THD'
+            Label:
+                text: root.generatedTHD
+            Label:
+                text: ''
+
+            Label:
+                text: 'Generated Peak Frequency'
+            Label:
+                text: root.generatedPeakFrequency
+            Label:
+                text: ''
+
+            Label:
+                text: 'Recorded THD'
+            Label:
+                text: root.recordedTHD
+            Label:
+                text: ''
+
+            Label:
+                text: 'Recorded Peak Frequency'
+            Label:
+                text: root.recordedPeakFrequency
+            Label:
+                text: ''
