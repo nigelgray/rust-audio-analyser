@@ -1,4 +1,4 @@
-![](https://www.clipartmax.com/png/middle/455-4550844_sound-wave-clipart-icon-icon-sound-wave-png.png)
+![](https://images.pond5.com/audio-signal-animation-different-white-footage-082028002_iconl.jpeg)
 
 # rust-audio-analyser
 Simple Cross-platform Audio Analyser
