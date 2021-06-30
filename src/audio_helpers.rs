@@ -2,6 +2,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use cpal::traits::{DeviceTrait, EventLoopTrait, HostTrait};
 #[cfg(not(feature = "default_card"))]
 use cpal::platform::Device;
+use std::time::Duration;
 
 #[cfg( all(target_os = "linux", not(feature = "default_card")))]
 const INPUT_CARD: &'static str = "hw:CARD=Device,DEV=0";
@@ -10,6 +11,9 @@ const INPUT_CARD: &'static str = "hw:CARD=Device,DEV=0";
 const INPUT_CARD: &'static str = "Microphone (USB Advanced Audio Device)";
 #[cfg(all(not(target_os = "linux"), not(feature = "default_card")))]
 const OUTPUT_CARD: &'static str = "Speakers (USB Advanced Audio Device)";
+
+const RECORDING_TIME: Duration = std::time::Duration::from_secs(crate::SECONDS_TO_RECORD as u64);
+const GENERATED_WAVE_AMPLITUDE: f32 = 0.8;
 
 pub fn record_audio() {
     // Use the default host for working with audio devices.
@@ -21,7 +25,9 @@ pub fn record_audio() {
 #[cfg(not(feature = "default_card"))]
     let device = get_soundcard(INPUT_CARD).expect("Failed to get input device");
 
+    println!("Input device: {}", device.name().expect("Device name error"));
     let format = device.default_input_format().expect("Failed to get default input format");
+    println!("Input format: {:?}", format);
     let event_loop = host.event_loop();
     let stream_id = event_loop.build_input_stream(&device, &format).expect("Input stream error");
     event_loop.play_stream(stream_id).expect("Input Play stream error");
@@ -69,11 +75,11 @@ pub fn record_audio() {
                 }
             };
 
-            // Produce a sinusoid of maximum amplitude.
+            // Produce a sinusoid
             let mut next_value = || {
                 sample_clock = (sample_clock + 1.0) % sample_rate;
                 let frequency = crate::FREQUENCY.load(Ordering::Relaxed);
-                (sample_clock * frequency as f32 * 2.0 * 3.141592 / sample_rate).sin()
+                (sample_clock * frequency as f32 * 2.0 * 3.141592 / sample_rate).sin() * GENERATED_WAVE_AMPLITUDE
             };
 
             // If we're done playing, return early.
@@ -81,6 +87,7 @@ pub fn record_audio() {
                 return;
             }
 
+            // Add conversation routines for different audio formats
             match data {
                 cpal::StreamData::Output { buffer: cpal::UnknownTypeOutputBuffer::U16(mut buffer) } => {
                     if let Ok(mut guard) = gen_writer_2.try_lock() {
@@ -147,6 +154,7 @@ pub fn record_audio() {
                 return;
             }
             // Otherwise write to the wav writer.
+            // Add conversation routines for different audio formats
             match data {
                 cpal::StreamData::Input { buffer: cpal::UnknownTypeInputBuffer::U16(buffer) } => {
                     if let Ok(mut guard) = writer_2.try_lock() {
@@ -182,7 +190,8 @@ pub fn record_audio() {
     });
 
     // Give the threads time to play/record
-    std::thread::sleep(std::time::Duration::from_secs(5));
+    // std::thread::sleep(std::time::Duration::from_secs(5));
+    std::thread::sleep(RECORDING_TIME);
     recording.store(false, Ordering::Relaxed);
     playing.store(false, Ordering::Relaxed);
 

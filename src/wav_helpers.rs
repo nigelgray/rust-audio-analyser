@@ -1,5 +1,13 @@
 use std::sync::atomic::{Ordering};
 
+// To find the RMS gain
+// - Calculate the RMS value of the generated audio
+// - Calculate the RMS value of the recorded audio
+// - Calculate the power between the signals, using the generated audio as the reference
+//      (positive value means amplification, negative means attenuation)
+// - We are interested in the voltage gain, not the power gain hence:
+//      L = 20 × log (voltage ratio V2 / V1) in dB   (V1 = Vin is the reference)
+//      See http://www.sengpielaudio.com/calculator-amplification.htm
 pub fn calculate_rms() {
     if let Some(generated_rms) = find_rms_value(crate::GENERATE_PATH) {
         if let Some(recorded_rms) = find_rms_value(crate::RECORD_PATH) {
@@ -10,6 +18,11 @@ pub fn calculate_rms() {
     }
 }
 
+// RMS = Root-Mean-Squared
+// - Sqaure each sample
+// - Sum them together
+// - Work out the mean of the final sum
+// - Take the square root 
 fn find_rms_value(filename: &str) -> Option<f64> {
     let mut reader = hound::WavReader::open(filename).unwrap();
     let sqr_sum = match reader.spec().sample_format {

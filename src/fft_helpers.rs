@@ -9,9 +9,17 @@ use csv::Writer;
 
 use std::sync::atomic::{Ordering};
 
-const SAMPLE_SIZE: usize = 65536;
-const SAMPLE_OFFSET: usize = 8192;
+// TODO: Should be able to get the sampling rate directly from the soundcard format info
+const SAMPLE_RATE: usize = 48000;
+// Cut some of the first and last samples to ensure the audio is clean
+const SAMPLE_SIZE: usize = (crate::SECONDS_TO_RECORD - 1.5 as usize) * SAMPLE_RATE;
+const SAMPLE_OFFSET: usize = 0.5 as usize * SAMPLE_RATE;
 
+// This will analyse both the generated and recorded audio
+// - Read the audio samples in
+// - Trim them down to a window of samples between two zero-cross points
+// - Run the FFT calculation
+// - Find the fundamental frequency, then use that to calculate the THD+N from the remaining signal
 pub fn calculate_peak_frequency() {
     let (mut gen_signal, gen_wave_spec) = read_wav_file(crate::GENERATE_PATH);
     gen_signal = find_zero_crosses(gen_signal);
@@ -28,11 +36,15 @@ pub fn calculate_peak_frequency() {
     }
 }
 
+// Run an FFT on the audio and detect the maximum frequency
+// This will be the fundamental frequency and can be used later for calculating the THD+N (signal vs noise)
 fn find_spectral_peak(mut signal: Vec<Complex<f32>>, wave_spec: hound::WavSpec, filename: &str) -> Option<(f32, f64)> {
     let bin = wave_spec.sample_rate as f32 * wave_spec.channels as f32 / signal.len() as f32;
 
     let frequency = crate::FREQUENCY.load(std::sync::atomic::Ordering::Relaxed);
-    let thd_size: usize = 20 + (frequency / 500 as usize);
+    // This controls the signal versus noise window we will use for the calculation
+    // Currently this is trial-and-error, probably need a more mathmatical way to calcualate it
+    let thd_size: usize = 100 + (frequency / 200 as usize);
 
     let mut spectrum = signal.clone();
     let mut planner = FFTplanner::new(false);
@@ -116,6 +128,7 @@ fn plot_fft(spectrum: Vec<Complex<f32>>, filename: &str, bin: f64, max_peak: f64
     Page::single(&linear_view).save(filename.to_owned() + "_linear.svg").expect("saving svg");
 }
 
+// Dump the data to a CSV file, so we can load it into a spreadsheet for debugging
 fn save_to_csv(spectrum: Vec<Complex<f32>>, filename: &str, bin: f32) {
 
     let mut wtr = Writer::from_path(filename.to_owned() + ".csv").expect("Couldn't open CSV file");
@@ -125,6 +138,8 @@ fn save_to_csv(spectrum: Vec<Complex<f32>>, filename: &str, bin: f32) {
     wtr.flush().expect("Couldn't flush CSV");
 }
 
+// Any FFT calculations need to be done between zero crosses, otherwise the discontinuous data
+// will cause havoc with the FFT calc and we'll get a garbage result
 fn find_zero_crosses(signal: Vec<Complex<f32>>) -> Vec<Complex<f32>> {
     let mut start_cross = SAMPLE_OFFSET;
     let mut end_cross = SAMPLE_SIZE + SAMPLE_OFFSET;

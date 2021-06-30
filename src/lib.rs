@@ -9,6 +9,7 @@ use std::sync::atomic::{AtomicUsize, AtomicU32, AtomicU64, Ordering};
 
 const GENERATE_PATH: &'static str = "generated.wav";
 const RECORD_PATH: &'static str = "recorded.wav";
+const SECONDS_TO_RECORD: usize = 4;
 
 static FREQUENCY: AtomicUsize = AtomicUsize::new(1000);
 static RMS_GAIN: AtomicU64 = AtomicU64::new(0);

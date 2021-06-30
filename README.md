@@ -46,3 +46,23 @@ https://en.wikipedia.org/wiki/Crosstalk
 How flat the frequency response looks across the test range.
 
 https://en.wikipedia.org/wiki/Frequency_response
+
+## Sample Output
+
+Using a loop-back test with some instrument cables, the measurements look promising.
+
+```
+PS C:\workspace\rust-audio-analyser> cargo run
+    Finished dev [unoptimized + debuginfo] target(s) in 0.12s
+     Running `target\debug\rust-audio-analyser.exe`
+Input device: Focusrite USB (Focusrite USB Audio)
+Input format: Format { channels: 2, sample_rate: SampleRate(48000), data_type: F32 }
+Output device: Focusrite USB (Focusrite USB Audio)
+Output format: Format { channels: 2, sample_rate: SampleRate(48000), data_type: F32 }
+Gain is 0.93 dB
+Generated THD+N 0.0000 %
+Generated Peak is 1000 Hz
+Recorded THD+N 0.1032 %
+Recorded Peak is 1000 Hz
+```
+
