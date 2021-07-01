@@ -64,7 +64,8 @@ fn find_spectral_peak(mut signal: Vec<Complex<f32>>, wave_spec: hound::WavSpec, 
     if let Some((i, freq)) = max_peak {
         plot_fft(spectrum.clone(), filename, bin as f64, freq.norm() as f64);
 
-        let mut index = i - (thd_size/2);
+        let half_thd_size = thd_size/2;
+        let mut index = if i > half_thd_size { i - half_thd_size } else { 0 };
         for _n in 0..thd_size {
             tone_strength += (spectrum[index].norm() as f64).powi(2);
             index += 1;
